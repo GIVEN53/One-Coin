@@ -1,8 +1,4 @@
-안녕하세요 20조입니다.
-<br/>
-저희 도메인은 **금융**입니다.
----
-- **commit message convention**
+## **commit message convention**
     
     - ✨feat: 새로운 기능 추가, 기존의 기능을 요구 사항에 맞추어 수정
     - 🐛fix: 기능에 대한 버그 수정
@@ -15,7 +11,6 @@
     - 🧪test: 테스트 코드관련
     - 🔀merge: 병합
 
----
 ## ✅ 참여 방법
 
 ### Git flow (수정)
