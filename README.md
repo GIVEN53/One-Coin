@@ -4,7 +4,7 @@
 
 배포 링크 : **[ONECOIN 바로가기](<http://projectonecoin.s3-website.ap-northeast-2.amazonaws.com/>)**
 
-### 서버 비용 문제로 2023.01.10 이후로 비활성화
+### 서버 비용 문제로 2023.01.10 이후로 비활성화되었습니다.
 
 데모 영상 : <https://youtu.be/j2MjyMpPnfo/>
 
