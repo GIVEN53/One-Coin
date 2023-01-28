@@ -4,6 +4,8 @@
 
 배포 링크 : **[ONECOIN 바로가기](<http://projectonecoin.s3-website.ap-northeast-2.amazonaws.com/>)**
 
+### 서버 비용 문제로 2023.01.10 이후로 비활성화
+
 데모 영상 : <https://youtu.be/j2MjyMpPnfo/>
 
 프로젝트 기간 : 2022.11.8 ~ 2022.12.07
