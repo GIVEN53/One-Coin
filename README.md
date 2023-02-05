@@ -2,7 +2,7 @@
 <p align="center"><img width="600px" src="https://user-images.githubusercontent.com/101033262/205873035-38b5904b-7c31-4cf7-a8bd-a580948902c3.png"></p>
 
 
-배포 링크 : **[ONECOIN 바로가기](<http://projectonecoin.s3-website.ap-northeast-2.amazonaws.com/>)**
+~~배포 링크 : **[ONECOIN 바로가기](<http://projectonecoin.s3-website.ap-northeast-2.amazonaws.com/>)**~~
 
 ### 서버 비용 문제로 2023.01.10 이후로 비활성화되었습니다.
 
