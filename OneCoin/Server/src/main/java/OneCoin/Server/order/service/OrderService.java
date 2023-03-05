@@ -33,7 +33,7 @@ public class OrderService {
 
     public void createOrder(Order order, String code) {
         User user = loggedInUserInfoUtils.extractUser();
-        coinService.verifyCoinExists(code);
+        coinService.findCoin(code);
         long userId = user.getUserId();
         BigDecimal amount = order.getAmount();
 

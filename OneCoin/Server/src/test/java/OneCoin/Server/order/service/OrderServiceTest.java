@@ -46,8 +46,8 @@ public class OrderServiceTest {
     private TransactionHistoryService transactionHistoryService;
     @MockBean
     private CalculationUtil calculationUtil;
-    private Order order = StubData.MockOrder.getMockEntity();
-    private User user = StubData.MockUser.getMockEntity();
+    private final Order order = StubData.MockOrder.getMockEntity();
+    private final User user = StubData.MockUser.getMockEntity();
 
     @AfterEach
     void deleteAll() {
@@ -60,7 +60,7 @@ public class OrderServiceTest {
     void saveBidOrderTest() {
         // given
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        doNothing().when(coinService).verifyCoinExists(anyString());
+        doNothing().when(coinService).findCoin(anyString());
         doNothing().when(balanceService).updateBalanceByBid(anyLong(), any());
         String code = "KRW-BTC";
 
@@ -77,7 +77,7 @@ public class OrderServiceTest {
     void saveAskOrderTest() {
         // given
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        doNothing().when(coinService).verifyCoinExists(anyString());
+        doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
         order.setOrderType("ASK");
         order.setAmount(new BigDecimal("0.01"));
@@ -96,7 +96,7 @@ public class OrderServiceTest {
     void askExceptionTest1() {
         // given
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        doNothing().when(coinService).verifyCoinExists(anyString());
+        doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
         order.setOrderType("ASK");
         order.setAmount(new BigDecimal("11"));
@@ -111,7 +111,7 @@ public class OrderServiceTest {
     void askExceptionTest2() {
         // given
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        doNothing().when(coinService).verifyCoinExists(anyString());
+        doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
         order.setOrderType("ASK");
         order.setAmount(new BigDecimal("10"));

@@ -13,16 +13,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CoinService {
-
     private final CoinRepository coinRepository;
-
-    @Transactional(readOnly = true)
-    public void verifyCoinExists(String code) {
-        Optional<Coin> optionalCoin = coinRepository.findByCode(code);
-        if (optionalCoin.isEmpty()) {
-            throw new BusinessLogicException(ExceptionCode.COIN_NOT_EXISTS);
-        }
-    }
 
     @Transactional(readOnly = true)
     public Coin findCoin(String code) {

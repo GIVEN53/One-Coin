@@ -44,8 +44,8 @@ public class SwapService {
      */
     public ExchangeRate calculateExchangeRate(String givenCoinCode, String takenCoinCode, BigDecimal amount) {
         // 코인 이름 체크
-        coinService.verifyCoinExists(givenCoinCode);
-        coinService.verifyCoinExists(takenCoinCode);
+        coinService.findCoin(givenCoinCode);
+        coinService.findCoin(takenCoinCode);
 
         ExchangeRate exchangeRate = new ExchangeRate();
         
