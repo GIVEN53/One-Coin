@@ -12,18 +12,20 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Positive;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order/completion")
 @RequiredArgsConstructor
 @Validated
 public class TransactionHistoryController {
-    private final int size = 10;
+    private final int PAGE_SIZE = 10;
     private final TransactionHistoryService transactionHistoryService;
     private final TransactionHistoryMapper mapper;
 
@@ -31,19 +33,23 @@ public class TransactionHistoryController {
     public ResponseEntity getTransactionHistoryPagination(@RequestParam(name = "period", required = false, defaultValue = "w") String period,
                                                           @RequestParam(name = "type", required = false, defaultValue = "ALL") String type,
                                                           @RequestParam(name = "code", required = false) String code,
-                                                          @Positive @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
-        Page<TransactionHistory> transactionHistoryPage = transactionHistoryService.findTransactionHistory(period, type, code, PageRequest.of(page - 1, size, Sort.by("createdAt").descending()));
+                                                          @Positive @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+                                                          @AuthenticationPrincipal Map<String, Object> userInfo) {
+        long userId = Long.parseLong(userInfo.get("id").toString());
+        Page<TransactionHistory> transactionHistoryPage = transactionHistoryService.findTransactionHistory(period, type, code, PageRequest.of(page - 1, PAGE_SIZE, Sort.by("createdAt").descending()), userId);
         List<TransactionHistory> transactionHistories = transactionHistoryPage.getContent();
         List<TransactionHistoryDto.GetResponse> responseDto = mapper.transactionHistoryToGetResponse(transactionHistories);
 
-        return new ResponseEntity(new PageResponseDto<>(responseDto, transactionHistoryPage), HttpStatus.OK);
+        return new ResponseEntity<>(new PageResponseDto<>(responseDto, transactionHistoryPage), HttpStatus.OK);
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity getTransactionHistoryByCode(@PathVariable("code") String code) {
-        List<TransactionHistory> transactionHistories = transactionHistoryService.findTransactionHistoryByCoin(code);
+    public ResponseEntity getTransactionHistoryByCode(@PathVariable("code") String code,
+                                                      @AuthenticationPrincipal Map<String, Object> userInfo) {
+        long userId = Long.parseLong(userInfo.get("id").toString());
+        List<TransactionHistory> transactionHistories = transactionHistoryService.findTransactionHistoryByCoin(code, userId);
         List<TransactionHistoryDto.GetResponse> responseDto = mapper.transactionHistoryToGetResponse(transactionHistories);
 
-        return new ResponseEntity(new MultiResponseDto<>(responseDto), HttpStatus.OK);
+        return new ResponseEntity<>(new MultiResponseDto<>(responseDto), HttpStatus.OK);
     }
 }
