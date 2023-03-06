@@ -13,9 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TransactionHistory extends CreatedOnlyAuditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,4 +48,18 @@ public class TransactionHistory extends CreatedOnlyAuditable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coin_id", updatable = false)
     private Coin coin;
+
+    @Builder
+    private TransactionHistory(Long transactionHistoryId, TransactionType transactionType, BigDecimal amount, BigDecimal price, BigDecimal totalAmount, double commission, BigDecimal settledAmount, LocalDateTime orderTime, User user, Coin coin) {
+        TransactionHistoryId = transactionHistoryId;
+        this.transactionType = transactionType;
+        this.amount = amount;
+        this.price = price;
+        this.totalAmount = totalAmount;
+        this.commission = commission;
+        this.settledAmount = settledAmount;
+        this.orderTime = orderTime;
+        this.user = user;
+        this.coin = coin;
+    }
 }

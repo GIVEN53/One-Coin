@@ -9,9 +9,6 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @RedisHash("wallet")
 public class Wallet {
     @Id
@@ -26,4 +23,13 @@ public class Wallet {
 
     @Indexed
     private String code;
+
+    @Builder
+    private Wallet(Long walletId, BigDecimal amount, BigDecimal averagePrice, Long userId, String code) {
+        this.walletId = walletId;
+        this.amount = amount;
+        this.averagePrice = averagePrice;
+        this.userId = userId;
+        this.code = code;
+    }
 }
