@@ -19,10 +19,10 @@ public abstract class WalletMapper {
     public abstract List<WalletDto.GetResponse> walletToGetResponse(List<Wallet> wallets);
 
     @Mapping(target = "amount", source = "completedAmount")
-    @Mapping(target = "averagePrice", expression = "java(calculationUtil.calculateAvgPrice(BigDecimal.ZERO, BigDecimal.ZERO, order.getLimit(), completedAmount))")
+    @Mapping(target = "averagePrice", expression = "java(calculationUtil.calculateAvgPrice(BigDecimal.ZERO, BigDecimal.ZERO, completedPrice, completedAmount))")
     @Mapping(target = "userId", source = "order.userId")
     @Mapping(target = "code", source = "order.code")
-    public abstract Wallet bidOrderToNewWallet(Order order, BigDecimal completedAmount);
+    public abstract Wallet bidOrderToNewWallet(Order order, BigDecimal completedPrice, BigDecimal completedAmount);
 
     public Wallet bidOrderToUpdatedWallet(Wallet wallet, BigDecimal orderPrice, BigDecimal completedAmount) {
         BigDecimal averagePrice = calculationUtil.calculateAvgPrice(wallet.getAveragePrice(), wallet.getAmount(), orderPrice, completedAmount);
