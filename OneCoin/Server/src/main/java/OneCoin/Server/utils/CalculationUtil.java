@@ -45,6 +45,6 @@ public class CalculationUtil {
     }
 
     public BigDecimal calculateOrderCommission(BigDecimal price, BigDecimal amount) {
-        return price.multiply(amount).multiply(Commission.ORDER.getRate());
+        return price.multiply(amount).multiply(Commission.ORDER.getRate()).setScale(2, RoundingMode.HALF_UP);
     }
 }
