@@ -3,7 +3,6 @@ package OneCoin.Server.swap.service;
 import OneCoin.Server.coin.service.CoinService;
 import OneCoin.Server.order.entity.Wallet;
 import OneCoin.Server.order.entity.enums.Commission;
-import OneCoin.Server.order.service.OrderService;
 import OneCoin.Server.order.service.TransactionHistoryService;
 import OneCoin.Server.order.service.WalletService;
 import OneCoin.Server.swap.entity.ExchangeRate;
@@ -30,7 +29,6 @@ public class SwapService {
     private final TickerRepository tickerRepository;
     private final CoinService coinService;
     private final UserService userService;
-    private final OrderService orderService;
     private final WalletService walletService;
     private final SwapWalletMapper swapWalletMapper;
     private final TransactionHistoryService transactionHistoryService;
@@ -78,9 +76,8 @@ public class SwapService {
         ExchangeRate exchangeRate = calculateExchangeRate(givenCoinCode, takenCoinCode, amount);
 
         // 스왑 가능 코인 체크
-        Wallet wallet = walletService.findVerifiedWalletWithCoin(userId, givenCoinCode);
-        BigDecimal prevOrderAmount = orderService.getPrevAskOrderAmount(userId, givenCoinCode);
-        orderService.checkUserCoinAmount(wallet, amount, prevOrderAmount);
+        Wallet myWallet = walletService.findMyVerifiedWallet(userId, givenCoinCode);
+        walletService.verifyWalletAmount(myWallet, amount);
 
         // 스왑 생성
         swap.setUser(user);
@@ -94,11 +91,11 @@ public class SwapService {
         // 코인 스왑(Wallet)
         // given
         Wallet givenWallet = swapWalletMapper.swapToGivenWallet(swap);
-        walletService.updateWalletByGivenSwap(wallet, givenWallet);
+        walletService.updateWalletByGivenSwap(myWallet, givenWallet);
 
         // taken
         Wallet takenWallet = swapWalletMapper.swapToTakenWallet(swap);
-        Wallet findWallet = walletService.findMyWallet(userId, takenCoinCode);
+        Wallet findWallet = walletService.findWallet(userId, takenCoinCode);
 
         // wallet 이 없다면 새로 생성
         if (findWallet != null) {

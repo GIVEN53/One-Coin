@@ -5,6 +5,7 @@ import OneCoin.Server.coin.service.CoinService;
 import OneCoin.Server.exception.BusinessLogicException;
 import OneCoin.Server.exception.ExceptionCode;
 import OneCoin.Server.order.entity.Order;
+import OneCoin.Server.order.entity.Wallet;
 import OneCoin.Server.order.entity.enums.TransactionType;
 import OneCoin.Server.order.repository.OrderRepository;
 import OneCoin.Server.utils.CalculationUtil;
@@ -25,7 +26,6 @@ public class OrderService {
     private final WalletService walletService;
     private final CalculationUtil calculationUtil;
     private final BalanceService balanceService;
-    private final TransactionHistoryService transactionHistoryService;
 
     /**
      * 주문을 생성한다.
@@ -39,7 +39,8 @@ public class OrderService {
         coinService.findCoin(code);
 
         if (order.getOrderType().equals(TransactionType.ASK)) {
-            walletService.verifyWalletAmount(userId, code, order.getAmount());
+            Wallet myWallet = walletService.findMyVerifiedWallet(userId, code);
+            walletService.verifyWalletAmount(myWallet, order.getAmount());
         }
         if (order.getOrderType().equals(TransactionType.BID)) {
             subtractUserBalance(userId, order.getLimit(), order.getAmount());
@@ -96,7 +97,6 @@ public class OrderService {
         if (order.getOrderType().equals(TransactionType.BID)) {
             giveBalanceBack(userId, order.getLimit(), order.getAmount());
         }
-        savePartialTradedOrdersToTransactionHistory(order);
         orderRepository.delete(order);
     }
 
@@ -125,15 +125,5 @@ public class OrderService {
     private void giveBalanceBack(long userId, BigDecimal cancelPrice, BigDecimal cancelAmount) {
         BigDecimal totalCancelPrice = calculationUtil.calculateByAddingCommission(cancelPrice, cancelAmount);
         balanceService.updateBalanceByAskOrCancelBid(userId, totalCancelPrice);
-    }
-
-    /**
-     * 일부 체결된 주문량이 있을 경우 투자 내역에 저장한다.
-     */
-    private void savePartialTradedOrdersToTransactionHistory(Order order) {
-        int comparison = order.getCompletedAmount().compareTo(BigDecimal.ZERO);
-        if (comparison > 0) {
-            transactionHistoryService.createTransactionHistoryByOrder(order);
-        }
     }
 }
