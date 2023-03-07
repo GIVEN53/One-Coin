@@ -15,6 +15,12 @@ import java.util.Optional;
 public class CoinService {
     private final CoinRepository coinRepository;
 
+    /**
+     * 코인을 조회한다.
+     * @param code 코인 코드
+     * @throws BusinessLogicException 코인이 존재하지 않을 경우
+     * @return coin
+     */
     @Transactional(readOnly = true)
     public Coin findCoin(String code) {
         Optional<Coin> optionalCoin = coinRepository.findByCode(code);
