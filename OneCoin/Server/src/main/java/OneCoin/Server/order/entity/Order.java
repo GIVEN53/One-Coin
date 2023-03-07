@@ -23,8 +23,6 @@ public class Order {
 
     private BigDecimal amount; // 미체결량
 
-    private BigDecimal completedAmount; // 체결량
-
     private LocalDateTime orderTime;
 
     @Indexed
@@ -37,12 +35,11 @@ public class Order {
     private String code;
 
     @Builder
-    private Order(Integer orderId, BigDecimal limit, BigDecimal market, BigDecimal amount, BigDecimal completedAmount, LocalDateTime orderTime, TransactionType orderType, Long userId, String code) {
+    private Order(Integer orderId, BigDecimal limit, BigDecimal market, BigDecimal amount, LocalDateTime orderTime, TransactionType orderType, Long userId, String code) {
         this.orderId = orderId;
         this.limit = limit;
         this.market = market;
         this.amount = amount;
-        this.completedAmount = completedAmount;
         this.orderTime = orderTime;
         this.orderType = orderType;
         this.userId = userId;
