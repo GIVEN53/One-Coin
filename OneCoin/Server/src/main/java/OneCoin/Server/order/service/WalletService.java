@@ -23,7 +23,6 @@ import java.util.List;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final OrderRepository orderRepository;
-    private final OrderService orderService;
     private final WalletMapper mapper;
     private final BalanceService balanceService;
     private final TransactionHistoryService transactionHistoryService;
@@ -146,19 +145,6 @@ public class WalletService {
         order.setAmount(completedAmount);
         order.setLimit(completedPrice);
         transactionHistoryService.createTransactionHistoryByOrder(order);
-    }
-
-    /**
-     * 매도 주문 또는 스왑 시 (보유 코인량 - 아직 미체결된 매도 코인량)으로 해당 주문을 이행할 수 있는지 확인한다.
-     */
-    public void verifyWalletAmount(Wallet myWallet, BigDecimal orderAmount) {
-        BigDecimal myWalletAmount = myWallet.getAmount();
-        BigDecimal prevAskOrderAmount = orderService.getPrevAskOrderAmount(myWallet.getUserId(), myWallet.getCode());
-
-        BigDecimal sellableAmount = myWalletAmount.subtract(prevAskOrderAmount);
-        if (sellableAmount.compareTo(orderAmount) < 0) {
-            throw new BusinessLogicException(ExceptionCode.NOT_ENOUGH_AMOUNT);
-        }
     }
 
     /**

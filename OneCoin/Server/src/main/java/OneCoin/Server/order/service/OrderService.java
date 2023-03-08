@@ -40,7 +40,7 @@ public class OrderService {
 
         if (order.getOrderType().equals(TransactionType.ASK)) {
             Wallet myWallet = walletService.findMyVerifiedWallet(userId, code);
-            walletService.verifyWalletAmount(myWallet, order.getAmount());
+            verifyWalletAmount(myWallet, order.getAmount());
         }
         if (order.getOrderType().equals(TransactionType.BID)) {
             subtractUserBalance(userId, order.getLimit(), order.getAmount());
@@ -51,9 +51,22 @@ public class OrderService {
     }
 
     /**
+     * 매도 주문 또는 스왑 시 (보유 코인량 - 아직 미체결된 매도 코인량)으로 해당 주문을 이행할 수 있는지 확인한다.
+     */
+    public void verifyWalletAmount(Wallet myWallet, BigDecimal orderAmount) {
+        BigDecimal myWalletAmount = myWallet.getAmount();
+        BigDecimal prevAskOrderAmount = getPrevAskOrderAmount(myWallet.getUserId(), myWallet.getCode());
+
+        BigDecimal sellableAmount = myWalletAmount.subtract(prevAskOrderAmount);
+        if (sellableAmount.compareTo(orderAmount) < 0) {
+            throw new BusinessLogicException(ExceptionCode.NOT_ENOUGH_AMOUNT);
+        }
+    }
+
+    /**
      * 미체결된 매도 코인량을 가져온다.
      */
-    protected BigDecimal getPrevAskOrderAmount(long userId, String code) {
+    private BigDecimal getPrevAskOrderAmount(long userId, String code) {
         List<Order> prevAskOrders = orderRepository.findAllByUserIdAndOrderTypeAndCode(userId, TransactionType.ASK, code);
         BigDecimal amount = BigDecimal.ZERO;
         for (Order order : prevAskOrders) {

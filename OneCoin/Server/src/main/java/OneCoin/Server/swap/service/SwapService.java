@@ -3,6 +3,7 @@ package OneCoin.Server.swap.service;
 import OneCoin.Server.coin.service.CoinService;
 import OneCoin.Server.order.entity.Wallet;
 import OneCoin.Server.order.entity.enums.Commission;
+import OneCoin.Server.order.service.OrderService;
 import OneCoin.Server.order.service.TransactionHistoryService;
 import OneCoin.Server.order.service.WalletService;
 import OneCoin.Server.swap.entity.ExchangeRate;
@@ -30,6 +31,7 @@ public class SwapService {
     private final CoinService coinService;
     private final UserService userService;
     private final WalletService walletService;
+    private final OrderService orderService;
     private final SwapWalletMapper swapWalletMapper;
     private final TransactionHistoryService transactionHistoryService;
     private final BigDecimal swapCommission = Commission.SWAP.getRate();    // 수수료
@@ -77,7 +79,7 @@ public class SwapService {
 
         // 스왑 가능 코인 체크
         Wallet myWallet = walletService.findMyVerifiedWallet(userId, givenCoinCode);
-        walletService.verifyWalletAmount(myWallet, amount);
+        orderService.verifyWalletAmount(myWallet, amount);
 
         // 스왑 생성
         swap.setUser(user);
