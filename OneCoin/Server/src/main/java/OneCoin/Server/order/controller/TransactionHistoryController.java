@@ -44,10 +44,10 @@ public class TransactionHistoryController {
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity getTransactionHistoryByCode(@PathVariable("code") String code,
+    public ResponseEntity getOrderTransactionHistoryByCode(@PathVariable("code") String code,
                                                       @AuthenticationPrincipal Map<String, Object> userInfo) {
         long userId = Long.parseLong(userInfo.get("id").toString());
-        List<TransactionHistory> transactionHistories = transactionHistoryService.findTransactionHistoryByCoin(code, userId);
+        List<TransactionHistory> transactionHistories = transactionHistoryService.findOrderTransactionHistory(code, userId);
         List<TransactionHistoryDto.GetResponse> responseDto = mapper.transactionHistoryToGetResponse(transactionHistories);
 
         return new ResponseEntity<>(new MultiResponseDto<>(responseDto), HttpStatus.OK);

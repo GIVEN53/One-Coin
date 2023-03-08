@@ -5,66 +5,35 @@ import OneCoin.Server.deposit.entity.Deposit;
 import OneCoin.Server.order.dto.TransactionHistoryDto;
 import OneCoin.Server.order.entity.Order;
 import OneCoin.Server.order.entity.TransactionHistory;
-import OneCoin.Server.order.entity.enums.TransactionType;
 import OneCoin.Server.swap.entity.Swap;
 import OneCoin.Server.user.entity.User;
-import OneCoin.Server.utils.CalculationUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public abstract class TransactionHistoryMapper {
-    @Autowired
-    protected CalculationUtil calculationUtil;
-
-    public abstract List<TransactionHistoryDto.GetResponse> transactionHistoryToGetResponse(List<TransactionHistory> transactionHistories);
+public interface TransactionHistoryMapper {
+    List<TransactionHistoryDto.GetResponse> transactionHistoryToGetResponse(List<TransactionHistory> transactionHistories);
 
     @Mapping(target = "completedTime", source = "createdAt")
-    @Mapping(target = "orderType", source = "transactionType.type")
+    @Mapping(target = "orderType", source = "transactionType")
     @Mapping(target = "code", source = "coin.code")
-    public abstract TransactionHistoryDto.GetResponse entityToDto(TransactionHistory transactionHistory);
+    TransactionHistoryDto.GetResponse entityToDto(TransactionHistory transactionHistory);
 
-    public TransactionHistory orderToTransactionHistory(Order order, User user, Coin coin) {
-        BigDecimal completedAmount = order.getCompletedAmount();
-        BigDecimal price = order.getLimit();
-        BigDecimal totalAmount = price.multiply(completedAmount);
+    @Mapping(target = "transactionType", source = "order.orderType")
+    @Mapping(target = "orderTime", source = "order.orderTime")
+    @Mapping(target = "amount", source = "order.amount")
+    @Mapping(target = "price", source = "order.limit")
+    TransactionHistory orderToTransactionHistory(Order order, User user, Coin coin, BigDecimal totalAmount, double commission, BigDecimal settledAmount);
 
-        TransactionType transactionType = TransactionType.valueOf(order.getOrderType());
-        BigDecimal commission = calculationUtil.calculateOrderCommission(price, completedAmount).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal settledAmount = getSettledAmount(transactionType, totalAmount, commission);
-
-        return TransactionHistory.builder()
-                .transactionType(transactionType)
-                .amount(completedAmount)
-                .price(price)
-                .totalAmount(totalAmount)
-                .commission(commission.doubleValue())
-                .settledAmount(settledAmount)
-                .orderTime(order.getOrderTime())
-                .user(user)
-                .coin(coin)
-                .build();
-    }
-
-    public TransactionHistory swapToTransactionHistory(Swap swap) {
-        return TransactionHistory.builder()
-                .user(swap.getUser())
-                .coin(swap.getGivenCoin())
-                .transactionType(TransactionType.SWAP)
-                .amount(swap.getGivenAmount())
-                .price(swap.getGivenCoinPrice())
-                .totalAmount(swap.getGivenAmount().multiply(swap.getGivenCoinPrice()))
-                .commission(Double.parseDouble(swap.getCommission().toString()))
-                .settledAmount(swap.getGivenAmount().subtract(swap.getCommission()))
-                .orderTime(LocalDateTime.now())
-                .build();
-    }
+    @Mapping(target = "transactionType", constant = "SWAP")
+    @Mapping(target = "coin", source = "swap.givenCoin")
+    @Mapping(target = "amount", source = "swap.givenAmount")
+    @Mapping(target = "price", source = "swap.givenCoinPrice")
+    @Mapping(target = "orderTime", expression = "java(java.time.LocalDateTime.now())")
+    TransactionHistory swapToTransactionHistory(Swap swap, BigDecimal totalAmount, BigDecimal settledAmount);
 
     @Mapping(target = "transactionType", constant = "DEPOSIT")
     @Mapping(target = "amount", source = "depositAmount")
@@ -74,16 +43,5 @@ public abstract class TransactionHistoryMapper {
     @Mapping(target = "settledAmount", source = "depositAmount")
     @Mapping(target = "user", source = "balance.user")
     @Mapping(target = "orderTime", expression = "java(java.time.LocalDateTime.now())")
-    public abstract TransactionHistory depositToTransactionHistory(Deposit deposit);
-
-    private BigDecimal getSettledAmount(TransactionType transactionType, BigDecimal totalAmount, BigDecimal commission) {
-        BigDecimal settledAmount = null;
-        if (transactionType.equals(TransactionType.BID)) {
-            settledAmount = totalAmount.add(commission);
-        }
-        if (transactionType.equals(TransactionType.ASK)) {
-            settledAmount = totalAmount.subtract(commission);
-        }
-        return settledAmount;
-    }
+    TransactionHistory depositToTransactionHistory(Deposit deposit);
 }
