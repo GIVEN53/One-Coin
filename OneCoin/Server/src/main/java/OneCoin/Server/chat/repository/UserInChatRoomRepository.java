@@ -17,7 +17,7 @@ import java.util.List;
 public class UserInChatRoomRepository {
     private final ObjectMapper objectMapper;
     private final ChatRoomUtils chatRoomUtils;
-    private final RedisTemplate<String, UserInChatRoom> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     //<ChatRoomIdKey, SessionId, UserInChatRoom>
     private HashOperations<String, String, UserInChatRoom> hashOperations;
 

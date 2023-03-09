@@ -11,12 +11,10 @@ import OneCoin.Server.config.webSocketAuth.WebSocketAuthService;
 import OneCoin.Server.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Component
 @Slf4j
@@ -25,7 +23,7 @@ public class RegisterController {
     private final ChatRoomService chatRoomService;
     private final ChatService chatService;
     private final ChatMapper chatMapper;
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
     private final WebSocketAuthService webSocketAuthService;
 

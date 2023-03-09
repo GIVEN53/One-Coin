@@ -19,7 +19,7 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
     private final ChatService chatService;
     private final ChatMapper chatMapper;
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
 
     @MessageMapping("/rooms")
