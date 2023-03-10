@@ -27,32 +27,44 @@ public class UpbitHandlingService {
     private final OrderBookRepository orderBookRepository;
     private final ApplicationEventPublisher publisher;
 
+    /**
+     * upbit에서 전달받은 코인 정보를 parsing한다.
+     */
     public void parsing(JsonNode jsonNode) {
         String type = jsonNode.get("type").asText();
 
-        if (type.equals(SiseType.TICKER.getType())) { // 현재가 정보
+        if (type.equals(SiseType.TICKER.getType())) {
             handleTicker(jsonNode);
         }
-        if (type.equals(SiseType.TRADE.getType())) { // 체결 정보
+        if (type.equals(SiseType.TRADE.getType())) {
             handleTrade(jsonNode);
         }
-        if (type.equals(SiseType.ORDER_BOOK.getType())) { // 호가 정보
+        if (type.equals(SiseType.ORDER_BOOK.getType())) {
             handleOrderBook(jsonNode);
         }
     }
 
+    /**
+     * 현재가 정보
+     */
     @SneakyThrows
     private void handleTicker(JsonNode jsonNode) {
         TickerDto tickerDto = objectMapper.readValue(jsonNode.toString(), TickerDto.class);
         tickerRepository.saveTicker(tickerDto);
     }
 
+    /**
+     * 체결 정보
+     */
     @SneakyThrows
     private void handleTrade(JsonNode jsonNode) {
         Trade trade = objectMapper.readValue(jsonNode.toString(), Trade.class);
         publisher.publishEvent(trade);
     }
 
+    /**
+     * 호가 정보
+     */
     @SneakyThrows
     private void handleOrderBook(JsonNode jsonNode) {
         String code = objectMapper.readValue(jsonNode.get("code").toString(), String.class);

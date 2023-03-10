@@ -1,7 +1,6 @@
 package OneCoin.Server.upbit.service;
 
 import OneCoin.Server.order.entity.Order;
-import OneCoin.Server.order.entity.Wallet;
 import OneCoin.Server.order.entity.enums.TransactionType;
 import OneCoin.Server.order.repository.OrderRepository;
 import OneCoin.Server.order.service.WalletService;
@@ -19,49 +18,48 @@ public class TradingService {
     private final OrderRepository orderRepository;
     private final WalletService walletService;
 
+    /**
+     * upbit에서 전달받은 체결 데이터와 같은 거래 타입, 코인을 order repository에서 조회한 후 체결시킨다.
+     */
     @EventListener
     public void completeOrders(Trade trade) {
         BigDecimal tradePrice = new BigDecimal(trade.getTradePrice());
         BigDecimal tradeVolume = new BigDecimal(trade.getTradeVolume());
-        String orderType = trade.getOrderType();
+        TransactionType orderType = Enum.valueOf(TransactionType.class, trade.getOrderType());
 
         List<Order> orders = orderRepository.findAllByOrderTypeAndCode(orderType, trade.getCode());
         if (orders.isEmpty()) {
             return;
         }
 
-        if (orderType.equals(TransactionType.BID.getType())) {
-            orders.removeIf(order -> order.getLimit().compareTo(tradePrice) < 0); // 매수 시 실제 체결 가격보다 크거나 같은 가격만 체결
-            if (orders.isEmpty()) {
-                return;
-            }
-            tradeBid(orders, tradeVolume);
-        }
-        if (orderType.equals(TransactionType.ASK.getType())) {
-            orders.removeIf(order -> order.getLimit().compareTo(tradePrice) > 0); // 매도 시 실제 체결 가격보다 작거나 같은 가격만 체결
-            if (orders.isEmpty()) {
-                return;
-            }
-            tradeAsk(orders, tradeVolume);
+        if (orderType.equals(TransactionType.BID)) {
+            tradeBid(orders, tradePrice, tradeVolume);
+        } else {
+            tradeAsk(orders, tradePrice, tradeVolume);
         }
     }
 
-    private void tradeBid(List<Order> orders, BigDecimal tradeVolume) {
+    /**
+     * 매수(BID): 현재 체결 가격보다 작은 주문은 체결시키지 않는다.
+     */
+    private void tradeBid(List<Order> orders, BigDecimal tradePrice, BigDecimal tradeVolume) {
         for (Order order : orders) {
-            Wallet findWallet = walletService.findMyWallet(order.getUserId(), order.getCode());
-
-            if (findWallet != null) {
-                walletService.updateWalletByBid(findWallet, order, tradeVolume);
-            } else {
-                walletService.createWallet(order, tradeVolume);
+            if (order.getLimit().compareTo(tradePrice) < 0) {
+                continue;
             }
+            walletService.updateWalletByBid(order, tradePrice, tradeVolume);
         }
     }
 
-    private void tradeAsk(List<Order> orders, BigDecimal tradeVolume) {
+    /**
+     * 매도(ASK): 현재 체결 가격보다 큰 주문은 체결시키지 않는다.
+     */
+    private void tradeAsk(List<Order> orders, BigDecimal tradePrice, BigDecimal tradeVolume) {
         for (Order order : orders) {
-            Wallet findWallet = walletService.findMyWallet(order.getUserId(), order.getCode());
-            walletService.updateWalletByAsk(findWallet, order, tradeVolume);
+            if (order.getLimit().compareTo(tradePrice) > 0) {
+                continue;
+            }
+            walletService.updateWalletByAsk(order, tradePrice, tradeVolume);
         }
     }
 }
