@@ -23,8 +23,7 @@ public class StubData {
                     .orderId(1)
                     .limit(new BigDecimal("22525000"))
                     .amount(new BigDecimal("10"))
-                    .completedAmount(BigDecimal.ZERO)
-                    .orderType("BID")
+                    .orderType(TransactionType.BID)
                     .orderTime(LocalDateTime.now())
                     .code("KRW-BTC")
                     .userId(1L)
@@ -32,13 +31,12 @@ public class StubData {
         }
 
         public static Order getMockEntity(int orderId, String limit,
-                                          String amount, String orderType, String code, long userId) {
+                                          String amount, TransactionType orderType, String code, long userId) {
             return Order
                     .builder()
                     .orderId(orderId)
                     .limit(new BigDecimal(limit))
                     .amount(new BigDecimal(amount))
-                    .completedAmount(BigDecimal.ZERO)
                     .orderType(orderType)
                     .orderTime(LocalDateTime.now())
                     .code(code)
@@ -47,11 +45,11 @@ public class StubData {
         }
 
         public static List<Order> getMockEntities() {
-            Order mockEntity1 = MockOrder.getMockEntity(2, "333333", "100", "BID", "KRW-BTC", 2L);
-            Order mockEntity2 = MockOrder.getMockEntity(3, "333333", "200", "ASK", "KRW-ETH", 3L);
-            Order mockEntity3 = MockOrder.getMockEntity(4, "555555", "300", "ASK", "KRW-ETH", 4L);
-            Order mockEntity4 = MockOrder.getMockEntity(5, "333333", "400", "ASK", "KRW-ETH", 5L);
-            Order mockEntity5 = MockOrder.getMockEntity(6, "555555", "500", "BID", "KRW-XRP", 6L);
+            Order mockEntity1 = MockOrder.getMockEntity(2, "333333", "100", TransactionType.BID, "KRW-BTC", 2L);
+            Order mockEntity2 = MockOrder.getMockEntity(3, "333333", "200", TransactionType.ASK, "KRW-ETH", 3L);
+            Order mockEntity3 = MockOrder.getMockEntity(4, "555555", "300", TransactionType.ASK, "KRW-ETH", 4L);
+            Order mockEntity4 = MockOrder.getMockEntity(5, "333333", "400", TransactionType.ASK, "KRW-ETH", 5L);
+            Order mockEntity5 = MockOrder.getMockEntity(6, "555555", "500", TransactionType.BID, "KRW-XRP", 6L);
 
             return List.of(mockEntity1, mockEntity2, mockEntity3, mockEntity4, mockEntity5);
         }
@@ -62,7 +60,6 @@ public class StubData {
             OrderDto.Post postDto = new OrderDto.Post();
             postDto.setLimit("12345000");
             postDto.setMarket("0");
-            postDto.setStopLimit("0");
             postDto.setAmount("66");
             postDto.setOrderType("BID");
 
