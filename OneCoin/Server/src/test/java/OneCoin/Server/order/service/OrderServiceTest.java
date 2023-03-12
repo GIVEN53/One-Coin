@@ -2,10 +2,10 @@ package OneCoin.Server.order.service;
 
 import OneCoin.Server.balance.service.BalanceService;
 import OneCoin.Server.coin.service.CoinService;
-import OneCoin.Server.config.auth.utils.LoggedInUserInfoUtils;
 import OneCoin.Server.exception.BusinessLogicException;
 import OneCoin.Server.helper.StubData;
 import OneCoin.Server.order.entity.Order;
+import OneCoin.Server.order.entity.enums.TransactionType;
 import OneCoin.Server.order.repository.OrderRepository;
 import OneCoin.Server.order.repository.WalletRepository;
 import OneCoin.Server.user.entity.User;
@@ -39,8 +39,6 @@ public class OrderServiceTest {
     @MockBean
     private BalanceService balanceService;
     @MockBean
-    private LoggedInUserInfoUtils loggedInUserInfoUtils;
-    @MockBean
     private CoinService coinService;
     @MockBean
     private TransactionHistoryService transactionHistoryService;
@@ -59,16 +57,15 @@ public class OrderServiceTest {
     @DisplayName("매수 주문을 저장한다.")
     void saveBidOrderTest() {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         doNothing().when(coinService).findCoin(anyString());
         doNothing().when(balanceService).updateBalanceByBid(anyLong(), any());
         String code = "KRW-BTC";
 
         // when
-        orderService.createOrder(order, code);
+        orderService.createOrder(order,1L, code);
 
         // then
-        List<Order> findOrder = orderRepository.findAllByUserIdAndOrderTypeAndCode(user.getUserId(), "BID", code);
+        List<Order> findOrder = orderRepository.findAllByUserIdAndOrderTypeAndCode(user.getUserId(), TransactionType.BID, code);
         assertThat(findOrder.size()).isEqualTo(1);
     }
 
@@ -76,18 +73,17 @@ public class OrderServiceTest {
     @DisplayName("매도 주문을 생성한다.")
     void saveAskOrderTest() {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
-        order.setOrderType("ASK");
+        order.setOrderType(TransactionType.ASK);
         order.setAmount(new BigDecimal("0.01"));
         String code = "KRW-BTC";
 
         // when
-        orderService.createOrder(order, code);
+        orderService.createOrder(order, 1L, code);
 
         // then
-        List<Order> findOrder = orderRepository.findAllByUserIdAndOrderTypeAndCode(user.getUserId(), "ASK", code);
+        List<Order> findOrder = orderRepository.findAllByUserIdAndOrderTypeAndCode(user.getUserId(), TransactionType.ASK, code);
         assertThat(findOrder.size()).isEqualTo(1);
     }
 
@@ -95,47 +91,30 @@ public class OrderServiceTest {
     @DisplayName("매도 시 wallet에 보유한 양보다 많이 주문하면 에러가 발생한다.")
     void askExceptionTest1() {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
-        order.setOrderType("ASK");
+        order.setOrderType(TransactionType.ASK);
         order.setAmount(new BigDecimal("11"));
         String code = "KRW-BTC";
 
         // when, then
-        assertThrows(BusinessLogicException.class, () -> orderService.createOrder(order, code));
+        assertThrows(BusinessLogicException.class, () -> orderService.createOrder(order, 1L, code));
     }
 
     @Test
     @DisplayName("매도 시 wallet에 보유한 양과 이미 주문한 매도량을 더한 값보다 많이 주문하면 에러가 발생한다.")
     void askExceptionTest2() {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         doNothing().when(coinService).findCoin(anyString());
         walletRepository.save(StubData.MockWallet.getMockEntity());
-        order.setOrderType("ASK");
+        order.setOrderType(TransactionType.ASK);
         order.setAmount(new BigDecimal("10"));
         orderRepository.save(order);
         String code = "KRW-BTC";
 
         // when, then
         order.setAmount(new BigDecimal("1"));
-        assertThrows(BusinessLogicException.class, () -> orderService.createOrder(order, code));
-    }
-
-    @Test
-    @DisplayName("이전 매도 주문량을 가져온다")
-    void getPrevAskOrderAmount() {
-        // given
-        order.setOrderType("ASK");
-        order.setAmount(new BigDecimal("10"));
-        orderRepository.save(order);
-
-        // when
-        BigDecimal prevAmount = orderService.getPrevAskOrderAmount(order.getUserId(), order.getCode());
-
-        // then
-        assertThat(prevAmount).isEqualTo(new BigDecimal("10"));
+        assertThrows(BusinessLogicException.class, () -> orderService.createOrder(order, 1L, code));
     }
 
     @Test
@@ -143,13 +122,12 @@ public class OrderServiceTest {
     void cancelOrder() {
         // given
         orderRepository.save(order);
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         given(calculationUtil.calculateByAddingCommission(any(), any())).willReturn(BigDecimal.ZERO);
         doNothing().when(balanceService).updateBalanceByAskOrCancelBid(anyLong(), any());
         doNothing().when(transactionHistoryService).createTransactionHistoryByOrder(any());
 
         // when
-        orderService.cancelOrder(1L);
+        orderService.cancelOrder(1L, 1L);
 
         // then
         Order findOrder = orderRepository.findById(1L).orElse(null);

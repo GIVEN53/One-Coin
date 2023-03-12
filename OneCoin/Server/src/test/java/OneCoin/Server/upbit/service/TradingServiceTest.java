@@ -2,6 +2,7 @@ package OneCoin.Server.upbit.service;
 
 import OneCoin.Server.helper.StubData;
 import OneCoin.Server.order.entity.Order;
+import OneCoin.Server.order.entity.enums.TransactionType;
 import OneCoin.Server.order.repository.OrderRepository;
 import OneCoin.Server.order.service.WalletService;
 import OneCoin.Server.upbit.entity.Trade;
@@ -53,13 +54,12 @@ public class TradingServiceTest {
     @DisplayName("OrderRepository의 메서드를 실행한다.")
     void invokeTest() {
         // given
-        when(walletService.findMyWallet(anyLong(), anyString())).thenReturn(null);
-        doNothing().when(walletService).createWallet(any(), any());
+        doNothing().when(walletService).updateWalletByBid(any(), any(), any());
 
         // when
         tradingService.completeOrders(trade);
 
         // then
-        verify(orderRepository, times(1)).findAllByOrderTypeAndCode(trade.getOrderType(), trade.getCode());
+        verify(orderRepository, times(1)).findAllByOrderTypeAndCode(TransactionType.BID, trade.getCode());
     }
 }

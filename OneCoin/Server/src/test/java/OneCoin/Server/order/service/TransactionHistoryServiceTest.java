@@ -3,7 +3,6 @@ package OneCoin.Server.order.service;
 import OneCoin.Server.coin.entity.Coin;
 import OneCoin.Server.coin.repository.CoinRepository;
 import OneCoin.Server.coin.service.CoinService;
-import OneCoin.Server.config.auth.utils.LoggedInUserInfoUtils;
 import OneCoin.Server.exception.BusinessLogicException;
 import OneCoin.Server.helper.StubData;
 import OneCoin.Server.order.entity.Order;
@@ -49,15 +48,13 @@ public class TransactionHistoryServiceTest {
     @Autowired
     private CoinRepository coinRepository;
     @MockBean
-    private LoggedInUserInfoUtils loggedInUserInfoUtils;
-    @MockBean
     private CoinService coinService;
     @MockBean
     private UserService userService;
     @Autowired
     private TransactionHistoryRepository transactionHistoryRepository;
-    private User user = StubData.MockUser.getMockEntity();
-    private Coin coin = StubData.MockCoin.getMockEntity(1L, "KRW-BTC", "비트코인");
+    private final User user = StubData.MockUser.getMockEntity();
+    private final Coin coin = StubData.MockCoin.getMockEntity(1L, "KRW-BTC", "비트코인");
 
     @BeforeEach
     void saveTransactionHistory() {
@@ -76,7 +73,6 @@ public class TransactionHistoryServiceTest {
         // given
         Order order = StubData.MockOrder.getMockEntity();
         order.setAmount(BigDecimal.ZERO);
-        order.setCompletedAmount(new BigDecimal("10"));
 
         given(userService.findVerifiedUser(anyLong())).willReturn(user);
         given(coinService.findCoin(anyString())).willReturn(coin);
@@ -95,12 +91,11 @@ public class TransactionHistoryServiceTest {
     @CsvSource(value = {"w:BID:KRW-BTC:1", "m:ASK::0", "3m:ALL:KRW-BTC:1", "6m:ALL::1"}, delimiter = ':')
     void searchTest(String period, String type, String code, int expectSize) {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         given(coinService.findCoin(anyString())).willReturn(coin);
         transactionHistoryRepository.save(StubData.MockHistory.getMockEntity(TransactionType.BID));
 
         // when
-        Page<TransactionHistory> transactionHistoryPage = transactionHistoryService.findTransactionHistory(period, type, code, pageRequest);
+        Page<TransactionHistory> transactionHistoryPage = transactionHistoryService.findTransactionHistory(period, type, code, pageRequest, 1L);
         List<TransactionHistory> transactionHistories = transactionHistoryPage.getContent();
 
         // then
@@ -114,7 +109,7 @@ public class TransactionHistoryServiceTest {
         String period = "a";
 
         // when then
-        assertThrows(BusinessLogicException.class, () -> transactionHistoryService.findTransactionHistory(period, "BID", "KRW-BTC", pageRequest));
+        assertThrows(BusinessLogicException.class, () -> transactionHistoryService.findTransactionHistory(period, "BID", "KRW-BTC", pageRequest, 1L));
     }
 
     @Test
@@ -124,14 +119,14 @@ public class TransactionHistoryServiceTest {
         String type = "ABC";
 
         // when then
-        assertThrows(BusinessLogicException.class, () -> transactionHistoryService.findTransactionHistory("w", type, "KRW-BTC", pageRequest));
+        assertThrows(BusinessLogicException.class, () -> transactionHistoryService.findTransactionHistory("w", type, "KRW-BTC", pageRequest, 1L));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"ALL", "BID", "ASK", "DEPOSIT", "SWAP"})
     @DisplayName("지정한 타입만 메서드를 에러없이 실행한다")
     void typeTest(String type) {
-        assertDoesNotThrow(() -> transactionHistoryService.findTransactionHistory("w", type, "KRW-BTC", pageRequest));
+        assertDoesNotThrow(() -> transactionHistoryService.findTransactionHistory("w", type, "KRW-BTC", pageRequest, 1L));
     }
 
     @Test
@@ -147,12 +142,10 @@ public class TransactionHistoryServiceTest {
         transactionHistoryRepository.save(transactionHistory2);
         Thread.sleep(1000);
         transactionHistoryRepository.save(transactionHistory3);
-
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         given(coinService.findCoin(anyString())).willReturn(coin);
 
         // when
-        List<TransactionHistory> transactionHistories = transactionHistoryService.findTransactionHistoryByCoin("KRW-BTC");
+        List<TransactionHistory> transactionHistories = transactionHistoryService.findOrderTransactionHistory("KRW-BTC", 1L);
 
         // then
         assertThat(transactionHistories.size()).isEqualTo(2);
@@ -168,11 +161,10 @@ public class TransactionHistoryServiceTest {
             transactionHistoryRepository.save(transactionHistory);
             Thread.sleep(100);
         }
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
         given(coinService.findCoin(anyString())).willReturn(coin);
 
         // when
-        List<TransactionHistory> transactionHistories = transactionHistoryService.findTransactionHistoryByCoin("KRW-BTC");
+        List<TransactionHistory> transactionHistories = transactionHistoryService.findOrderTransactionHistory("KRW-BTC", 1L);
 
         // then
         assertThat(transactionHistories.size()).isEqualTo(10);

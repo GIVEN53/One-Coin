@@ -1,7 +1,6 @@
 package OneCoin.Server.order.service;
 
 import OneCoin.Server.balance.service.BalanceService;
-import OneCoin.Server.config.auth.utils.LoggedInUserInfoUtils;
 import OneCoin.Server.helper.StubData;
 import OneCoin.Server.order.entity.Order;
 import OneCoin.Server.order.entity.Wallet;
@@ -26,33 +25,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @MockBean(OkHttpClient.class)
 public class WalletServiceTest {
-
     @SpyBean
     private WalletService walletService;
-
-    @MockBean
-    private LoggedInUserInfoUtils loggedInUserInfoUtils;
-
     @MockBean
     private BalanceService balanceService;
-
     @MockBean
     private TransactionHistoryService transactionHistoryService;
-
     @Autowired
     private OrderRepository orderRepository;
-
     @Autowired
     private WalletRepository walletRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     private Order order;
     private User user;
 
@@ -74,14 +62,14 @@ public class WalletServiceTest {
     @DisplayName("매수 체결 시 wallet 생성(일부 체결), order의 미체결량 감소")
     void createWallet1() {
         // given
+        BigDecimal tradePrice = new BigDecimal("100000");
         BigDecimal tradeVolume = new BigDecimal("1");
 
         // when
-        walletService.createWallet(order, tradeVolume);
+        walletService.updateWalletByBid(order, tradePrice, tradeVolume);
 
         // then
         Order findOrder = orderRepository.findById(1L).orElse(null);
-        assertThat(findOrder.getCompletedAmount()).isEqualTo(tradeVolume);
         assertThat(findOrder.getAmount()).isEqualTo(new BigDecimal("9"));
 
         Wallet findWallet = walletRepository.findByUserIdAndCode(1L, "KRW-BTC").orElse(null);
@@ -92,11 +80,12 @@ public class WalletServiceTest {
     @DisplayName("매수 체결 시 wallet 생성(전체 체결), order 삭제")
     void createWallet2() {
         // given
+        BigDecimal tradePrice = new BigDecimal("100000");
         BigDecimal tradeVolume = new BigDecimal("10");
 
         // when
         doNothing().when(transactionHistoryService).createTransactionHistoryByOrder(any());
-        walletService.createWallet(order, tradeVolume);
+        walletService.updateWalletByBid(order, tradePrice, tradeVolume);
 
         // then
         Order findOrder = orderRepository.findById(1L).orElse(null);
@@ -110,12 +99,12 @@ public class WalletServiceTest {
     @DisplayName("매수 체결 시 wallet이 존재하면 업데이트")
     void updateWalletByBid() {
         // given
-        Wallet wallet = StubData.MockWallet.getMockEntity();
+        BigDecimal tradePrice = new BigDecimal("100000");
         BigDecimal tradeVolume = new BigDecimal("10");
 
         // when
         doNothing().when(transactionHistoryService).createTransactionHistoryByOrder(any());
-        walletService.updateWalletByBid(wallet, order, tradeVolume);
+        walletService.updateWalletByBid(order, tradePrice, tradeVolume);
 
         // then
         Wallet findWallet = walletRepository.findByUserIdAndCode(1L, "KRW-BTC").orElse(null);
@@ -129,11 +118,12 @@ public class WalletServiceTest {
         // given
         Wallet wallet = StubData.MockWallet.getMockEntity();
         wallet.setAmount(new BigDecimal("10"));
+        BigDecimal tradePrice = new BigDecimal("100000");
         BigDecimal tradeVolume = new BigDecimal("9");
 
         // when
         doNothing().when(balanceService).updateBalanceByAskOrCancelBid(anyLong(), any());
-        walletService.updateWalletByAsk(wallet, order, tradeVolume);
+        walletService.updateWalletByAsk(order, tradePrice, tradeVolume);
 
         // then
         Wallet findWallet = walletRepository.findByUserIdAndCode(1L, "KRW-BTC").orElse(null);
@@ -147,12 +137,12 @@ public class WalletServiceTest {
         Wallet wallet = StubData.MockWallet.getMockEntity();
         wallet.setAmount(new BigDecimal("10"));
         walletRepository.save(wallet);
+        BigDecimal tradePrice = new BigDecimal("100000");
         BigDecimal tradeVolume = new BigDecimal("10");
 
         // when
         doNothing().when(balanceService).updateBalanceByAskOrCancelBid(anyLong(), any());
-        wallet = walletRepository.findByUserIdAndCode(1L, "KRW-BTC").orElse(null);
-        walletService.updateWalletByAsk(wallet, order, tradeVolume);
+        walletService.updateWalletByAsk(order, tradePrice, tradeVolume);
 
         // then
         Wallet findWallet = walletRepository.findByUserIdAndCode(1L, "KRW-BTC").orElse(null);
@@ -170,8 +160,7 @@ public class WalletServiceTest {
         walletRepository.save(wallet2);
 
         // when
-        when(loggedInUserInfoUtils.extractUser()).thenReturn(user);
-        List<Wallet> wallets = walletService.findWallets();
+        List<Wallet> wallets = walletService.findWallets(1L);
 
         // then
         assertThat(wallets.size()).isEqualTo(2);

@@ -2,6 +2,7 @@ package OneCoin.Server.order.repository;
 
 import OneCoin.Server.helper.StubData;
 import OneCoin.Server.order.entity.Order;
+import OneCoin.Server.order.entity.enums.TransactionType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +49,7 @@ public class OrderRepositoryTest {
         orderRepository.saveAll(orders);
 
         // when
-        String orderType = "ASK";
+        TransactionType orderType = TransactionType.ASK;
         String code = "KRW-ETH";
         List<Order> findOrders = orderRepository.findAllByOrderTypeAndCode(orderType, code);
 

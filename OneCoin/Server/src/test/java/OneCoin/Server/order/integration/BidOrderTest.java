@@ -3,7 +3,6 @@ package OneCoin.Server.order.integration;
 import OneCoin.Server.balance.service.BalanceService;
 import OneCoin.Server.coin.entity.Coin;
 import OneCoin.Server.coin.repository.CoinRepository;
-import OneCoin.Server.config.auth.utils.LoggedInUserInfoUtils;
 import OneCoin.Server.deposit.entity.Deposit;
 import OneCoin.Server.deposit.service.DepositService;
 import OneCoin.Server.helper.StubData;
@@ -31,7 +30,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
 @MockBean(OkHttpClient.class)
@@ -55,8 +53,6 @@ public class BidOrderTest {
     private OrderMapper orderMapper;
     @Autowired
     private UserMapper userMapper;
-    @MockBean
-    private LoggedInUserInfoUtils loggedInUserInfoUtils;
     private User user;
     private Coin coin;
 
@@ -82,10 +78,9 @@ public class BidOrderTest {
         postDto.setLimit("10000000");
         postDto.setAmount("5");
         Order order = orderMapper.postDtoToOrder(postDto);
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
 
         // when
-        orderService.createOrder(order, "KRW-BTC");
+        orderService.createOrder(order, 1L, "KRW-BTC");
 
         // then
         User findUser = userRepository.findById(1L).orElse(null);
@@ -97,15 +92,13 @@ public class BidOrderTest {
     @DisplayName("매수 취소 후 유저의 잔액을 다시 환불하는지 확인한다.")
     void checkBalanceAfterCancelBidOrder() {
         // given
-        given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        List<Order> orders = orderService.findOrders();
+        List<Order> orders = orderService.findOrders(1L);
         Order order = orders.get(0);
-        order.setCompletedAmount(new BigDecimal("1"));
         order.setAmount(new BigDecimal("4"));
         orderRepository.save(order);
 
         // when
-        orderService.cancelOrder(order.getOrderId());
+        orderService.cancelOrder(order.getOrderId(), 1L);
 
         // then
         User findUser = userRepository.findById(1L).orElse(null);

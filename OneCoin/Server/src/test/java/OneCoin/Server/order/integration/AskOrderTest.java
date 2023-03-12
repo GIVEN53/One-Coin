@@ -90,7 +90,7 @@ public class AskOrderTest {
         Order order = StubData.MockOrder.getMockEntity();
         order.setLimit(new BigDecimal("10000000"));
         order.setAmount(new BigDecimal("5"));
-        walletService.createWallet(order, new BigDecimal("5"));
+        walletService.updateWalletByBid(order, order.getLimit(), order.getAmount());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class AskOrderTest {
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
 
         // when, then
-        assertDoesNotThrow(() -> orderService.createOrder(order, "KRW-BTC"));
+        assertDoesNotThrow(() -> orderService.createOrder(order, 1L, "KRW-BTC"));
         List<Order> orders = (List<Order>) orderRepository.findAll();
         assertThat(orders.get(0).getAmount()).isEqualTo(new BigDecimal("4"));
     }
@@ -124,7 +124,7 @@ public class AskOrderTest {
         tradingService.completeOrders(trade);
 
         // then
-        Wallet wallet = walletService.findMyWallet(1L, "KRW-BTC");
+        Wallet wallet = walletService.findWallet(1L, "KRW-BTC");
         assertThat(wallet.getAmount()).isEqualTo(BigDecimal.ONE);
 
         User findUser = userRepository.findById(1L).orElse(null);
@@ -142,7 +142,7 @@ public class AskOrderTest {
         postDto.setOrderType("ASK");
         Order order = orderMapper.postDtoToOrder(postDto);
         given(loggedInUserInfoUtils.extractUser()).willReturn(user);
-        orderService.createOrder(order, "KRW-BTC");
+        orderService.createOrder(order, 1L, "KRW-BTC");
 
         String jsonTrade = StubData.MockUpbitAPI.getJsonTrade();
         JsonNode jsonNodeTrade = jsonUtil.fromJson(jsonTrade, JsonNode.class);
@@ -153,6 +153,6 @@ public class AskOrderTest {
 
         // then
         assertTrue(orderRepository.findAllByUserId(1L).isEmpty());
-        assertNull(walletService.findMyWallet(1L, "KRW-BTC"));
+        assertNull(walletService.findWallet(1L, "KRW-BTC"));
     }
 }

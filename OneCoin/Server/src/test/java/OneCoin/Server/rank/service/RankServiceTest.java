@@ -11,8 +11,6 @@ import OneCoin.Server.order.repository.OrderRepository;
 import OneCoin.Server.order.repository.TransactionHistoryRepository;
 import OneCoin.Server.order.repository.WalletRepository;
 import OneCoin.Server.rank.dao.UserRoi;
-import OneCoin.Server.upbit.dto.ticker.TickerDto;
-import OneCoin.Server.upbit.repository.TickerRepository;
 import OneCoin.Server.user.entity.User;
 import OneCoin.Server.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterAll;
@@ -23,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -35,8 +32,6 @@ public class RankServiceTest {
     private RankService rankService;
     @Autowired
     private  WalletRepository walletRepository;
-    @Autowired
-    private TickerRepository tickerRepository;
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
@@ -78,12 +73,7 @@ public class RankServiceTest {
         Coin coin2 = StubData.MockCoin.getMockEntity(2L, "KRW-ETH", "이더리움");
         Coin coinSaved1 = coinRepository.save(coin1);
         Coin coinSaved2 = coinRepository.save(coin2);
-        Order order = new Order();
-        order.setAmount(BigDecimal.valueOf(0.02));
-        order.setCompletedAmount(BigDecimal.valueOf(0.01));
-        order.setCode("KRW-BTC");
-        order.setLimit(BigDecimal.valueOf(20000000));
-        order.setUserId(1L);
+        Order order = StubData.MockOrder.getMockEntity();
         orderRepository.save(order);
         User user = userRepository.findById(2L).get();
 
@@ -105,7 +95,6 @@ public class RankServiceTest {
 
     @Test
     void calculateRoiTest() {
-        List<TickerDto> ts = tickerRepository.findTickers();
         List<UserRoi> userROIList = rankService.calculateAllRois();
         //then
         assertThat(userROIList.size()).isEqualTo(2);
